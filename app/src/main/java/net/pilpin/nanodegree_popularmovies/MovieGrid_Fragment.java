@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.CursorLoader;
-import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
@@ -15,21 +14,30 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.GridView;
-import android.widget.SimpleCursorAdapter;
+import android.widget.ImageView;
+
+import com.squareup.picasso.Picasso;
 
 import net.pilpin.nanodegree_popularmovies.data.MovieContract;
 
 public class MovieGrid_Fragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    private static final int MOVIE_LOADER_POPULARITY = 10000;
-    private static final int MOVIE_LOADER_VOTE = 10101;
+    public static final int MOVIE_LOADER_POPULARITY = 10000;
+    public static final int MOVIE_LOADER_VOTE = 10101;
+
+    private static final String[] MOVIES_COLUMNS = {
+            MovieContract.MovieEntry._ID,
+            MovieContract.MovieEntry.TITLE,
+            MovieContract.MovieEntry.POSTER,
+    };
+
+    static final int COL_MOVIES_ID = 0;
+    static final int COL_MOVIES_TITLE = 1;
+    static final int COL_MOVIES_POSTER = 2;
 
     private OnFragmentInteractionListener mListener;
-
-    //ImageAdapter mAdapter;
-    SimpleCursorAdapter mAdapter;
+    private MovieAdapter mAdapter;
 
     public MovieGrid_Fragment() {
-        // Required empty public constructor
     }
 
     @Override
@@ -42,28 +50,25 @@ public class MovieGrid_Fragment extends Fragment implements LoaderManager.Loader
                              Bundle savedInstanceState) {
         FetchMoviesTask fetchMoviesTask = new FetchMoviesTask(getActivity());
         fetchMoviesTask.execute();
-        mAdapter = new SimpleCursorAdapter(getActivity(), android.R.layout.simple_list_item_1, null, new String[]{MovieContract.MovieEntry.TITLE}, new int[] { android.R.id.text1 }, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+        mAdapter = new MovieAdapter(getActivity(), null, true);
         GridView view = (GridView) inflater.inflate(R.layout.fragment_movie_grid, container, false);
         view.setAdapter(mAdapter);
         view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.setData(MovieContract.MovieEntry.buildMovieUri(id));
-                getActivity().startActivity(intent);
+                mListener.onFragmentInteraction(MovieContract.MovieEntry.buildMovieUri(id));
             }
         });
 
-        getLoaderManager().initLoader(MOVIE_LOADER_POPULARITY, null, this);
+        switchLoader(MOVIE_LOADER_POPULARITY);
+
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mListener = (OnFragmentInteractionListener) getActivity();
     }
 
     @Override
@@ -79,7 +84,7 @@ public class MovieGrid_Fragment extends Fragment implements LoaderManager.Loader
                 return new CursorLoader(
                         getActivity(),
                         MovieContract.MovieEntry.CONTENT_URI,
-                        null,
+                        MOVIES_COLUMNS,
                         null,
                         null,
                         MovieContract.MovieEntry.ORDER_BY_POPULARITY);
@@ -87,7 +92,7 @@ public class MovieGrid_Fragment extends Fragment implements LoaderManager.Loader
                 return new CursorLoader(
                         getActivity(),
                         MovieContract.MovieEntry.CONTENT_URI,
-                        null,
+                        MOVIES_COLUMNS,
                         null,
                         null,
                         MovieContract.MovieEntry.ORDER_BY_VOTE_AVERAGE);
@@ -98,44 +103,54 @@ public class MovieGrid_Fragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mAdapter.changeCursor(data);
+        mAdapter.swapCursor(data);
     }
 
     @Override
     public void onLoaderReset(Loader loader) {
-
+        mAdapter.swapCursor(null);
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+    public void switchLoader(int loaderId){
+        getLoaderManager().restartLoader(loaderId, null, this);
     }
 
-    private class ImageAdapter extends CursorAdapter{
+    private class MovieAdapter extends CursorAdapter{
 
-        public ImageAdapter(Context context, Cursor c, boolean autoRequery) {
+        public MovieAdapter(Context context, Cursor c, boolean autoRequery) {
             super(context, c, autoRequery);
         }
 
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            return null;
+            View view = (LayoutInflater.from(context)).inflate(R.layout.fragment_movie_grid_listitem, parent, false);
+
+            ViewHolder viewHolder = new ViewHolder(view);
+            view.setTag(viewHolder);
+
+            return view;
         }
 
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
+            final String POSTER_URL_BASE_PATH = "http://image.tmdb.org/t/p/w342/";
+            ViewHolder viewHolder = (ViewHolder) view.getTag();
 
+            String posterUrl = POSTER_URL_BASE_PATH + cursor.getString(COL_MOVIES_POSTER);
+            Picasso.with(context).load(posterUrl).into(viewHolder.posterView);
         }
+
+        private class ViewHolder {
+            public final ImageView posterView;
+
+            public ViewHolder(View view) {
+                posterView = (ImageView) view.findViewById(R.id.poster);
+            }
+        }
+    }
+
+    public interface OnFragmentInteractionListener {
+        public void onFragmentInteraction(Uri uri);
     }
 
 }
