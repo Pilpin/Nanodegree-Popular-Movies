@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            android:elevation="4dp"
+            android:elevation="@dimen/toolbar_elevation"
             app:popupTheme="@style/AppTheme.PopupOverlay">
             <Spinner
                 android:id="@+id/spinner_nav"
@@ -26,6 +26,15 @@
                 android:layout_height="wrap_content"
                 android:popupBackground="@color/colorPrimary"/>
         </android.support.v7.widget.Toolbar>
+
+        <TextView
+            android:id="@+id/internet_info"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="@dimen/toolbar_elevation"
+            android:gravity="center"
+            android:visibility="gone"/>
 
     </android.support.design.widget.AppBarLayout>
 

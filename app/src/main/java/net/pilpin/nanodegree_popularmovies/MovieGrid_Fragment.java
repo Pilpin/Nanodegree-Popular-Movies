@@ -20,7 +20,7 @@ import com.squareup.picasso.Picasso;
 
 import net.pilpin.nanodegree_popularmovies.data.MovieContract;
 
-public class MovieGrid_Fragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor> {
     public static final int MOVIE_LOADER_POPULARITY = 10000;
     public static final int MOVIE_LOADER_VOTE = 10101;
 
@@ -48,8 +48,7 @@ public class MovieGrid_Fragment extends Fragment implements LoaderManager.Loader
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        FetchMoviesTask fetchMoviesTask = new FetchMoviesTask(getActivity());
-        fetchMoviesTask.execute();
+
         mAdapter = new MovieAdapter(getActivity(), null, true);
         GridView view = (GridView) inflater.inflate(R.layout.fragment_movie_grid, container, false);
         view.setAdapter(mAdapter);
@@ -59,8 +58,6 @@ public class MovieGrid_Fragment extends Fragment implements LoaderManager.Loader
                 mListener.onFragmentInteraction(MovieContract.MovieEntry.buildMovieUri(id));
             }
         });
-
-        switchLoader(MOVIE_LOADER_POPULARITY);
 
         return view;
     }
@@ -75,6 +72,20 @@ public class MovieGrid_Fragment extends Fragment implements LoaderManager.Loader
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        if (id == 0) {
+            getLoaderManager().restartLoader(MOVIE_LOADER_POPULARITY, null, this);
+        } else if (id == 1) {
+            getLoaderManager().restartLoader(MOVIE_LOADER_VOTE, null, this);
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 
     @Override
@@ -111,19 +122,17 @@ public class MovieGrid_Fragment extends Fragment implements LoaderManager.Loader
         mAdapter.swapCursor(null);
     }
 
-    public void switchLoader(int loaderId){
-        getLoaderManager().restartLoader(loaderId, null, this);
-    }
-
     private class MovieAdapter extends CursorAdapter{
+        LayoutInflater inflater;
 
         public MovieAdapter(Context context, Cursor c, boolean autoRequery) {
             super(context, c, autoRequery);
+            inflater = LayoutInflater.from(context);
         }
 
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            View view = (LayoutInflater.from(context)).inflate(R.layout.fragment_movie_grid_listitem, parent, false);
+            View view = inflater.inflate(R.layout.fragment_movie_grid_listitem, parent, false);
 
             ViewHolder viewHolder = new ViewHolder(view);
             view.setTag(viewHolder);
@@ -150,7 +159,7 @@ public class MovieGrid_Fragment extends Fragment implements LoaderManager.Loader
     }
 
     public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(Uri uri);
     }
 
 }

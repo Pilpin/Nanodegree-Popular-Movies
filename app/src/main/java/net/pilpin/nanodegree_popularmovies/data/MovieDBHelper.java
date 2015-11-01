@@ -21,8 +21,8 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieContract.MovieEntry.POSTER + " TEXT, " +
                 MovieContract.MovieEntry.SYNOPSIS + " TEXT, " +
                 MovieContract.MovieEntry.RELEASE_DATE + " INTEGER, " +
-                MovieContract.MovieEntry.POPULARITY + " REAL, " +
-                MovieContract.MovieEntry.VOTE_AVERAGE + " REAL, " +
+                MovieContract.MovieEntry.POPULARITY + " REAL NOT NULL," +
+                MovieContract.MovieEntry.VOTE_AVERAGE + " REAL NOT NULL," +
                 "UNIQUE (" + MovieContract.MovieEntry.API_ID + ") ON CONFLICT REPLACE);";
 
         db.execSQL(SQL_CREATE_MOVIE_TABLE);

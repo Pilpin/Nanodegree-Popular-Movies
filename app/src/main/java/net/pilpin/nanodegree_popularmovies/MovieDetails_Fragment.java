@@ -3,14 +3,22 @@ package net.pilpin.nanodegree_popularmovies;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import net.pilpin.nanodegree_popularmovies.data.MovieContract;
+
+import java.util.Calendar;
+import java.util.Locale;
 
 public class MovieDetails_Fragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private final int MOVIE_LOADER = 2000;
@@ -26,12 +34,16 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
 
     static final int COL_MOVIE_DETAILS_ID = 0;
     static final int COL_MOVIE_DETAILS_TITLE = 1;
-    static final int COL_MOVIE_DETAILS_POSTER = 2;
-    static final int COL_MOVIE_DETAILS_RELEASE_DATE = 3;
-    static final int COL_MOVIE_DETAILS_SYNOPSIS = 4;
+    static final int COL_MOVIE_DETAILS_RELEASE_DATE = 2;
+    static final int COL_MOVIE_DETAILS_SYNOPSIS = 3;
+    static final int COL_MOVIE_DETAILS_POSTER = 4;
     static final int COL_MOVIE_DETAILS_VOTE_AVERAGE = 5;
 
     private OnFragmentInteractionListener mListener;
+    private ImageView poster;
+    private TextView release_date;
+    private TextView vote_average;
+    private TextView synopsis;
 
     public MovieDetails_Fragment() {
     }
@@ -45,7 +57,12 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_movie_details, container, false);
+        View v = inflater.inflate(R.layout.fragment_movie_details, container, false);
+        poster = (ImageView) v.findViewById(R.id.details_poster);
+        release_date = (TextView) v.findViewById(R.id.details_release_date);
+        vote_average = (TextView) v.findViewById(R.id.details_vote_average);
+        synopsis = (TextView) v.findViewById(R.id.details_synopsis);
+        return v;
     }
 
     @Override
@@ -57,19 +74,47 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(
-                getActivity(),
-                getActivity().getIntent().getData(),
-                MOVIE_DETAILS_COLUMNS,
-                null,
-                null,
-                null);
+        Intent intent = getActivity().getIntent();
+        if(intent != null) {
+            return new CursorLoader(
+                    getActivity(),
+                    intent.getData(),
+                    MOVIE_DETAILS_COLUMNS,
+                    null,
+                    null,
+                    null);
+        }
+        return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        final String POSTER_URL_BASE_PATH = "http://image.tmdb.org/t/p/w500/";
+
         if(data.moveToFirst()){
+            String dateStr;
+            Calendar cal = Calendar.getInstance();
+
+            String voteStr = "Average Rate: " + data.getString(COL_MOVIE_DETAILS_VOTE_AVERAGE);
             mListener.setActionBarTitle(data.getString(COL_MOVIE_DETAILS_TITLE));
+            vote_average.setText(voteStr);
+
+            if(!data.isNull(COL_MOVIE_DETAILS_RELEASE_DATE)) {
+                cal.setTimeInMillis(data.getLong(COL_MOVIE_DETAILS_RELEASE_DATE));
+                dateStr = "Released on " + cal.get(Calendar.DAY_OF_MONTH) + " " + cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) + " " + cal.get(Calendar.YEAR);
+            }else{
+                dateStr = "Released date unknown";
+            }
+
+            release_date.setText(dateStr);
+
+
+            if(!data.isNull(COL_MOVIE_DETAILS_SYNOPSIS)) {
+                synopsis.setText(data.getString(COL_MOVIE_DETAILS_SYNOPSIS));
+            }
+            if(!data.isNull(COL_MOVIE_DETAILS_POSTER)) {
+                Picasso.with(getActivity()).load(POSTER_URL_BASE_PATH + data.getString(COL_MOVIE_DETAILS_POSTER)).into(poster);
+            }
         }
     }
 
@@ -79,6 +124,6 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
     }
 
     public interface OnFragmentInteractionListener {
-        public void setActionBarTitle(String title);
+        void setActionBarTitle(String title);
     }
 }

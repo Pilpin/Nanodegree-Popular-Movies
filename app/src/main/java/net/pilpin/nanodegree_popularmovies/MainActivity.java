@@ -1,40 +1,79 @@
 package net.pilpin.nanodegree_popularmovies;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, MovieGrid_Fragment.OnFragmentInteractionListener {
+import java.util.Calendar;
+
+public class MainActivity extends AppCompatActivity implements MovieGrid_Fragment.OnFragmentInteractionListener {
     private final String SPINNER_POSITION = "spinner_position";
     private Spinner spinner;
+    private TextView lost_connection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        spinner = (Spinner) findViewById(R.id.spinner_nav);
+        lost_connection = (TextView) findViewById(R.id.internet_info);
+
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        AdapterView.OnItemSelectedListener fragment = (AdapterView.OnItemSelectedListener) getFragmentManager().findFragmentById(R.id.fragment_movies_grid);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getSupportActionBar().getThemedContext(), R.array.nav_spinner, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner = (Spinner) findViewById(R.id.spinner_nav);
         spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(this);
+        spinner.setOnItemSelectedListener(fragment);
+    }
+
+    @Override
+    protected void onResume() {
+        // if the last time we fetched the movie list was more than 6 hours ago, let's update
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR, -6);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        long last_update = preferences.getLong(getResources().getString(R.string.pref_last_updated_key), 0);
+
+        if(last_update < cal.getTimeInMillis()) {
+            ConnectivityManager cm =(ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+            if(activeNetwork != null && activeNetwork.isConnected()){
+                lost_connection.setVisibility(View.GONE);
+                FetchMoviesTask fetchMoviesTask = new FetchMoviesTask(this);
+                fetchMoviesTask.execute();
+            }else{
+                if(last_update == 0){
+                    lost_connection.setText(getResources().getString(R.string.offline_no_movies));
+                }else{
+                    lost_connection.setText(getResources().getString(R.string.offline_movies));
+                }
+                lost_connection.setVisibility(View.VISIBLE);
+            }
+
+        }
+
+        super.onResume();
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        // NOT WORKING
-        Log.e(this.getClass().toString(), String.valueOf(savedInstanceState.getInt(SPINNER_POSITION)));
         spinner.setSelection(savedInstanceState.getInt(SPINNER_POSITION));
     }
 
@@ -42,27 +81,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt(SPINNER_POSITION, spinner.getSelectedItemPosition());
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if(view != null) {
-            String selected = ((TextView) view).getText().toString();
-            MovieGrid_Fragment fragment = (MovieGrid_Fragment) getFragmentManager().findFragmentById(R.id.fragment_movies_grid);
-
-            if (selected == getResources().getString(R.string.movies_most_popular)) {
-                fragment.switchLoader(fragment.MOVIE_LOADER_POPULARITY);
-            } else if (selected == getResources().getString(R.string.movies_highest_rated)) {
-                fragment.switchLoader(fragment.MOVIE_LOADER_VOTE);
-            } else if (selected == getResources().getString(R.string.movies_favorite)) {
-                //
-            }
-        }
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
     }
 
     @Override

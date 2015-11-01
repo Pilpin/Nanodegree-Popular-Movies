@@ -2,8 +2,10 @@ package net.pilpin.nanodegree_popularmovies;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import net.pilpin.nanodegree_popularmovies.data.MovieContract;
@@ -38,7 +40,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
 
     @Override
     protected Boolean doInBackground(Void... params) {
-        Boolean result = true;
+        Boolean result = false;
 
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
@@ -49,6 +51,9 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
         String sortOrder = "desc";
         String popularity = "popularity" + "." + sortOrder;
         String voteAverage = "vote_average" + "." + sortOrder;
+
+        // To make sure that the data is "fresh", will have to change this for favorites implementation
+        mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
 
         try{
             final String THEMOVIEDB_BASE_URL = "http://api.themoviedb.org";
@@ -78,7 +83,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
 
             String line;
             while((line = reader.readLine()) != null){
-                buffer.append(line + "\n");
+                buffer.append(line).append("\n");
             }
 
             if(buffer.length() == 0){
@@ -103,7 +108,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
         }
 
         try{
-            result = result && getMovieDataFromJson(mostPopularMoviesJsonStr);
+            result = getMovieDataFromJson(mostPopularMoviesJsonStr);
         }catch (JSONException e){
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
@@ -137,7 +142,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
 
             String line;
             while((line = reader.readLine()) != null){
-                buffer.append(line + "\n");
+                buffer.append(line).append("\n");
             }
 
             if(buffer.length() == 0){
@@ -174,6 +179,13 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
     @Override
     protected void onPostExecute(Boolean results) {
         super.onPostExecute(results);
+        if(results) {
+            Calendar cal = Calendar.getInstance();
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+            SharedPreferences.Editor prefEditor = preferences.edit();
+            prefEditor.putLong(mContext.getResources().getString(R.string.pref_last_updated_key), cal.getTimeInMillis());
+            prefEditor.apply();
+        }
     }
 
 
@@ -194,20 +206,26 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray moviesArray = moviesJson.getJSONArray(MOVIE_LIST);
 
-            Vector<ContentValues> cVVector = new Vector<ContentValues>(moviesArray.length());
+            Vector<ContentValues> cVVector = new Vector<>(moviesArray.length());
             Calendar cal = Calendar.getInstance();
 
             for(int i = 0; i < moviesArray.length(); i++){
                 JSONObject movie = moviesArray.getJSONObject(i);
                 SimpleDateFormat dateFormat = new SimpleDateFormat(DATEFORMAT);
+                String poster = movie.getString(MOVIE_POSTER);
+                String synopsis = movie.getString(MOVIE_SYNOPSIS);
                 String release_date = movie.getString(MOVIE_RELEASE_DATE);
 
                 ContentValues values = new ContentValues();
                 values.put(MovieContract.MovieEntry.API_ID, movie.getLong(MOVIE_ID));
                 values.put(MovieContract.MovieEntry.TITLE, movie.getString(MOVIE_TITLE));
-                values.put(MovieContract.MovieEntry.SYNOPSIS, movie.getString(MOVIE_SYNOPSIS));
-                values.put(MovieContract.MovieEntry.POSTER, movie.getString(MOVIE_POSTER));
-                if(release_date != "null"){
+                if(!synopsis.equals("null")) {
+                    values.put(MovieContract.MovieEntry.SYNOPSIS, synopsis);
+                }
+                if(!poster.equals("null")) {
+                    values.put(MovieContract.MovieEntry.POSTER, poster);
+                }
+                if(!release_date.equals("null")){
                     cal.setTime(dateFormat.parse(release_date));
                     values.put(MovieContract.MovieEntry.RELEASE_DATE, cal.getTimeInMillis());
                 }
@@ -225,10 +243,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
             }
 
             return insertCount > 0;
-        }catch (JSONException e){
-            Log.e(LOG_TAG, e.getMessage(), e);
-            e.printStackTrace();
-        }catch (ParseException e) {
+        }catch (JSONException | ParseException e){
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
         }
