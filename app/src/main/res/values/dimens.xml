@@ -8,7 +8,7 @@
 
     <dimen name="toolbar_elevation">4dp</dimen>
 
-    <dimen name="movie_grid_spacing">5dp</dimen>
+    <dimen name="movie_grid_spacing">2dp</dimen>
 
     <dimen name="movie_details_margin">10dp</dimen>
     <dimen name="movie_details_margin_small">5dp</dimen>
@@ -18,4 +18,7 @@
     <dimen name="movie_details_poster_height">280dp</dimen>
     <dimen name="movie_grid_poster_width">120dp</dimen>
     <dimen name="movie_grid_poster_height">180dp</dimen>
+
+    <string name="poster_movie_grid_size">w342</string>
+    <string name="poster_movie_details_size">w500</string>
 </resources>

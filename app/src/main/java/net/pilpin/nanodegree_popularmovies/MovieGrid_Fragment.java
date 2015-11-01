@@ -142,7 +142,7 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
 
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
-            final String POSTER_URL_BASE_PATH = "http://image.tmdb.org/t/p/w342/";
+            final String POSTER_URL_BASE_PATH = "http://image.tmdb.org/t/p/" + getResources().getString(R.string.poster_movie_grid_size) + "/";
             ViewHolder viewHolder = (ViewHolder) view.getTag();
 
             String posterUrl = POSTER_URL_BASE_PATH + cursor.getString(COL_MOVIES_POSTER);

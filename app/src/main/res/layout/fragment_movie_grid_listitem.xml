@@ -5,5 +5,5 @@
            android:layout_width="@dimen/movie_grid_poster_width"
            android:layout_height="@dimen/movie_grid_poster_height"
            android:adjustViewBounds="true"
-           android:scaleType="centerCrop"
+           android:scaleType="fitCenter"
            android:contentDescription="@string/accessibility_poster_description"/>

@@ -89,7 +89,7 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        final String POSTER_URL_BASE_PATH = "http://image.tmdb.org/t/p/w500/";
+        final String POSTER_URL_BASE_PATH = "http://image.tmdb.org/t/p/" + getResources().getString(R.string.poster_movie_details_size) + "/";
 
         if(data.moveToFirst()){
             String dateStr;
