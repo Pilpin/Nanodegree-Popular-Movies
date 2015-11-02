@@ -146,7 +146,7 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
             ViewHolder viewHolder = (ViewHolder) view.getTag();
 
             String posterUrl = POSTER_URL_BASE_PATH + cursor.getString(COL_MOVIES_POSTER);
-            Picasso.with(context).load(posterUrl).into(viewHolder.posterView);
+            Picasso.with(context).load(posterUrl).placeholder(R.drawable.poster_holder).into(viewHolder.posterView);
         }
 
         private class ViewHolder {

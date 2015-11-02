@@ -30,7 +30,7 @@
 
         <provider
             android:name=".data.MovieProvider"
-            android:authorities="net.pilpin.nanodegree_popularmovies"
+            android:authorities="net.pilpin.nanodegree_popularmovies.provider"
             android:enabled="true" >
         </provider>
 
