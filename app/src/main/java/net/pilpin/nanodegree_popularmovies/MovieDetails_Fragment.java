@@ -113,7 +113,7 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
                 synopsis.setText(data.getString(COL_MOVIE_DETAILS_SYNOPSIS));
             }
             if(!data.isNull(COL_MOVIE_DETAILS_POSTER)) {
-                Picasso.with(getActivity()).load(POSTER_URL_BASE_PATH + data.getString(COL_MOVIE_DETAILS_POSTER)).into(poster);
+                Picasso.with(getActivity()).load(POSTER_URL_BASE_PATH + data.getString(COL_MOVIE_DETAILS_POSTER)).placeholder(R.drawable.poster_holder).into(poster);
             }
         }
     }

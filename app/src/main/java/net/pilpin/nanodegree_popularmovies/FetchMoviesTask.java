@@ -179,7 +179,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
     @Override
     protected void onPostExecute(Boolean results) {
         super.onPostExecute(results);
-        if(results) {
+        if(results != null && results) {
             Calendar cal = Calendar.getInstance();
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
             SharedPreferences.Editor prefEditor = preferences.edit();
