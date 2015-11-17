@@ -23,6 +23,7 @@ import net.pilpin.nanodegree_popularmovies.data.MovieContract;
 public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor> {
     public static final int MOVIE_LOADER_POPULARITY = 10000;
     public static final int MOVIE_LOADER_VOTE = 10101;
+    public static final int MOVIE_LOADER_FAVORITE = 11111;
 
     private static final String[] MOVIES_COLUMNS = {
             MovieContract.MovieEntry._ID,
@@ -80,6 +81,8 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
             getLoaderManager().restartLoader(MOVIE_LOADER_POPULARITY, null, this);
         } else if (id == 1) {
             getLoaderManager().restartLoader(MOVIE_LOADER_VOTE, null, this);
+        } else if (id == 2) {
+            getLoaderManager().restartLoader(MOVIE_LOADER_FAVORITE, null, this);
         }
     }
 
@@ -107,6 +110,14 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
                         null,
                         null,
                         MovieContract.MovieEntry.ORDER_BY_VOTE_AVERAGE);
+            case MOVIE_LOADER_FAVORITE:
+                return new CursorLoader(
+                        getActivity(),
+                        MovieContract.MovieEntry.CONTENT_URI,
+                        MOVIES_COLUMNS,
+                        MovieContract.MovieEntry.FAVORITE + " = ?",
+                        new String[]{"1"},
+                        null);
             default:
                 return null;
         }
