@@ -116,7 +116,7 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
                         MovieContract.MovieEntry.CONTENT_URI,
                         MOVIES_COLUMNS,
                         MovieContract.MovieEntry.FAVORITE + " = ?",
-                        new String[]{"1"},
+                        new String[]{MovieContract.MovieEntry.FAVORITED},
                         null);
             default:
                 return null;

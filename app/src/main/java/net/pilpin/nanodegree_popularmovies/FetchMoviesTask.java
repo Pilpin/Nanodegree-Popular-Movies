@@ -45,15 +45,48 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
 
-        String mostPopularMoviesJsonStr = null;
-        String highestRatedMoviesJsonStr = null;
+        // To make sure the data is "fresh", will have to change this for favorites implementation
+        mContext.getContentResolver().delete(
+                MovieContract.MovieEntry.CONTENT_URI,
+                MovieContract.MovieEntry.FAVORITE + " = ?",
+                new String[]{MovieContract.MovieEntry.NOT_FAVORITED});
 
+        try{
+            String favoriteMoviesJsonStr = updateFavoriteMovies(urlConnection, reader);
+            result = getDataFromJsonMovieDetails(favoriteMoviesJsonStr);
+            String mostPopularMoviesJsonStr = fetchPopularMovies(urlConnection, reader);
+            result = result && getDataFromJsonMovieList(mostPopularMoviesJsonStr);
+            String highestRatedMoviesJsonStr = fetchHighestRatedMovies(urlConnection, reader);
+            result = result && getDataFromJsonMovieList(highestRatedMoviesJsonStr);
+        }catch (JSONException e){
+            Log.e(LOG_TAG, e.getMessage(), e);
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    @Override
+    protected void onPostExecute(Boolean results) {
+        super.onPostExecute(results);
+        if(results != null && results) {
+            Calendar cal = Calendar.getInstance();
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+            SharedPreferences.Editor prefEditor = preferences.edit();
+            prefEditor.putLong(mContext.getResources().getString(R.string.pref_last_updated_key), cal.getTimeInMillis());
+            prefEditor.apply();
+        }
+    }
+
+    private String updateFavoriteMovies(HttpURLConnection urlConnection, BufferedReader reader){
+        String result = null;
+        return result;
+    }
+
+    private String fetchPopularMovies(HttpURLConnection urlConnection, BufferedReader reader){
         String sortOrder = "desc";
         String popularity = "popularity" + "." + sortOrder;
-        String voteAverage = "vote_average" + "." + sortOrder;
-
-        // To make sure that the data is "fresh", will have to change this for favorites implementation
-        mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
+        String result;
 
         try{
             final String THEMOVIEDB_BASE_URL = "http://api.themoviedb.org";
@@ -89,7 +122,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
             if(buffer.length() == 0){
                 return null;
             }
-            mostPopularMoviesJsonStr = buffer.toString();
+            result = buffer.toString();
         }catch (IOException e){
             Log.e("", "Error " + e);
             return null;
@@ -107,12 +140,13 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
             }
         }
 
-        try{
-            result = getMovieDataFromJson(mostPopularMoviesJsonStr);
-        }catch (JSONException e){
-            Log.e(LOG_TAG, e.getMessage(), e);
-            e.printStackTrace();
-        }
+        return result;
+    }
+
+    private String fetchHighestRatedMovies(HttpURLConnection urlConnection, BufferedReader reader){
+        String sortOrder = "desc";
+        String voteAverage = "vote_average" + "." + sortOrder;
+        String result;
 
         try{
             final String THEMOVIEDB_BASE_URL = "http://api.themoviedb.org";
@@ -148,7 +182,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
             if(buffer.length() == 0){
                 return null;
             }
-            highestRatedMoviesJsonStr = buffer.toString();
+            result = buffer.toString();
         }catch (IOException e){
             Log.e("", "Error " + e);
             return null;
@@ -166,30 +200,11 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
             }
         }
 
-        try{
-            result = result && getMovieDataFromJson(highestRatedMoviesJsonStr);
-        }catch (JSONException e){
-            Log.e(LOG_TAG, e.getMessage(), e);
-            e.printStackTrace();
-        }
-
         return result;
     }
 
-    @Override
-    protected void onPostExecute(Boolean results) {
-        super.onPostExecute(results);
-        if(results != null && results) {
-            Calendar cal = Calendar.getInstance();
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-            SharedPreferences.Editor prefEditor = preferences.edit();
-            prefEditor.putLong(mContext.getResources().getString(R.string.pref_last_updated_key), cal.getTimeInMillis());
-            prefEditor.apply();
-        }
-    }
 
-
-    public boolean getMovieDataFromJson(String moviesJsonStr) throws JSONException {
+    private boolean getDataFromJsonMovieList(String moviesJsonStr) throws JSONException {
         final String MOVIE_LIST = "results";
 
         final String MOVIE_ID = "id";
@@ -248,5 +263,10 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private boolean getDataFromJsonMovieDetails(String movieJsonStr){
+        // Temporary
+        return true;
     }
 }

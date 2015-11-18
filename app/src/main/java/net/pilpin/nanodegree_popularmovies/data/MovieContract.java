@@ -38,6 +38,9 @@ public class MovieContract {
         public static Uri buildMovieUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
+
+        public static final String FAVORITED = "1";
+        public static final String NOT_FAVORITED = "0";
     }
 
     public static final class TrailerEntry implements BaseColumns {
