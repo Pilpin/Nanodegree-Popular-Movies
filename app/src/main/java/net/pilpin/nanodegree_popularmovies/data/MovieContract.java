@@ -23,7 +23,6 @@ public class MovieContract {
         public static final String VOTE_AVERAGE = "vote_average";
         public static final String RELEASE_DATE = "release_date";
         public static final String FAVORITE = "favorite";
-        public static final String BACKDROP = "backdrop";
 
         public static final String ORDER_BY_POPULARITY = POPULARITY + " DESC LIMIT 20";
         public static final String ORDER_BY_VOTE_AVERAGE = VOTE_AVERAGE + " DESC LIMIT 20";

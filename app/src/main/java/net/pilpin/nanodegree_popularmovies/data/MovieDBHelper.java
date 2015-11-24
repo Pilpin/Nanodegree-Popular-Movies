@@ -21,7 +21,6 @@ public class MovieDBHelper extends SQLiteOpenHelper {
             MovieContract.MovieEntry.RELEASE_DATE + " INTEGER, " +
             MovieContract.MovieEntry.POPULARITY + " REAL NOT NULL," +
             MovieContract.MovieEntry.VOTE_AVERAGE + " REAL NOT NULL," +
-            MovieContract.MovieEntry.BACKDROP + " TEXT," +
             MovieContract.MovieEntry.FAVORITE + " INTEGER DEFAULT 0," +
             "UNIQUE (" + MovieContract.MovieEntry.API_ID + ") ON CONFLICT REPLACE);";
 
@@ -43,9 +42,6 @@ public class MovieDBHelper extends SQLiteOpenHelper {
             MovieContract.ReviewEntry.URL + " TEXT, " +
             "UNIQUE (" + MovieContract.ReviewEntry.API_ID + ") ON CONFLICT REPLACE);";
 
-    private final String SQL_ALTER_MOVIE_TABLE_BACKDROP = "ALTER TABLE " + MovieContract.MovieEntry.TABLE_NAME +
-            " ADD COLUMN " + MovieContract.MovieEntry.BACKDROP + " TEXT;";
-
     private final String SQL_ALTER_MOVIE_TABLE_FAVORITE = "ALTER TABLE " + MovieContract.MovieEntry.TABLE_NAME +
             " ADD COLUMN " + MovieContract.MovieEntry.FAVORITE + " INTEGER DEFAULT 0;";
 
@@ -59,7 +55,6 @@ public class MovieDBHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if(oldVersion == 1 && newVersion == 2){
-            db.execSQL(SQL_ALTER_MOVIE_TABLE_BACKDROP);
             db.execSQL(SQL_ALTER_MOVIE_TABLE_FAVORITE);
             db.execSQL(SQL_CREATE_REVIEWS_TABLE);
             db.execSQL(SQL_CREATE_TRAILERS_TABLE);

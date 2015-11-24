@@ -3,6 +3,7 @@ package net.pilpin.nanodegree_popularmovies;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -42,21 +43,16 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
     protected Boolean doInBackground(Void... params) {
         Boolean result = false;
 
-        HttpURLConnection urlConnection = null;
-        BufferedReader reader = null;
-
-        // To make sure the data is "fresh", will have to change this for favorites implementation
         mContext.getContentResolver().delete(
                 MovieContract.MovieEntry.CONTENT_URI,
                 MovieContract.MovieEntry.FAVORITE + " = ?",
                 new String[]{MovieContract.MovieEntry.NOT_FAVORITED});
 
         try{
-            String favoriteMoviesJsonStr = updateFavoriteMovies(urlConnection, reader);
-            result = getDataFromJsonMovieDetails(favoriteMoviesJsonStr);
-            String mostPopularMoviesJsonStr = fetchPopularMovies(urlConnection, reader);
+            result = updateFavoriteMovies();
+            String mostPopularMoviesJsonStr = fetchPopularMovies();
             result = result && getDataFromJsonMovieList(mostPopularMoviesJsonStr);
-            String highestRatedMoviesJsonStr = fetchHighestRatedMovies(urlConnection, reader);
+            String highestRatedMoviesJsonStr = fetchHighestRatedMovies();
             result = result && getDataFromJsonMovieList(highestRatedMoviesJsonStr);
         }catch (JSONException e){
             Log.e(LOG_TAG, e.getMessage(), e);
@@ -78,12 +74,96 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
         }
     }
 
-    private String updateFavoriteMovies(HttpURLConnection urlConnection, BufferedReader reader){
-        String result = null;
+    private boolean updateFavoriteMovies(){
+        HttpURLConnection urlConnection = null;
+        int count = 0;
+        BufferedReader reader = null;
+
+        Cursor c = mContext.getContentResolver().query(
+                MovieContract.MovieEntry.CONTENT_URI,
+                null,
+                MovieContract.MovieEntry.FAVORITE + " = ?",
+                new String[]{MovieContract.MovieEntry.FAVORITED},
+                null);
+
+        if(c == null){
+            // NO FAVORITE MOVIES
+            return true;
+        }
+
+        while (c.moveToNext()){
+            String movieId = c.getString(c.getColumnIndex(MovieContract.MovieEntry.API_ID));
+
+            try{
+                final String THEMOVIEDB_BASE_URL = "http://api.themoviedb.org";
+                final String APPID_PARAM = "api_key";
+
+                Uri builtUri = Uri.parse(THEMOVIEDB_BASE_URL).buildUpon()
+                        .appendPath("3")
+                        .appendPath("movie")
+                        .appendPath(movieId)
+                        .appendQueryParameter(APPID_PARAM, BuildConfig.THEMOVIE_DB_API_KEY)
+                        .build();
+
+                URL url = new URL(builtUri.toString());
+
+
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuffer buffer = new StringBuffer();
+                if(inputStream == null){
+                    return false;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while((line = reader.readLine()) != null){
+                    buffer.append(line).append("\n");
+                }
+
+                if(buffer.length() == 0){
+                    return false;
+                }
+                String movieJsonStr = buffer.toString();
+
+                if(movieJsonStr != null){
+                    JSONObject movie = new JSONObject(movieJsonStr);
+                    count += mContext.getContentResolver().update(
+                            MovieContract.MovieEntry.CONTENT_URI,
+                            getDataFromJsonMovieDetails(movie),
+                            MovieContract.MovieEntry.API_ID + " = ?",
+                            new String[]{movieId});
+                }
+            } catch (IOException | JSONException e) {
+                Log.e(LOG_TAG, "Error " + e);
+                return false;
+            } finally {
+                if(urlConnection != null){
+                    urlConnection.disconnect();
+                }
+
+                if(reader != null){
+                    try{
+                        reader.close();
+                    }catch (final IOException e){
+                        Log.e(LOG_TAG, "Error closing stream", e);
+                    }
+                }
+            }
+        }
+
+        boolean result = count == c.getCount();
+        c.close();
+
         return result;
     }
 
-    private String fetchPopularMovies(HttpURLConnection urlConnection, BufferedReader reader){
+    private String fetchPopularMovies(){
+        HttpURLConnection urlConnection = null;
+        BufferedReader reader = null;
         String sortOrder = "desc";
         String popularity = "popularity" + "." + sortOrder;
         String result;
@@ -124,7 +204,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
             }
             result = buffer.toString();
         }catch (IOException e){
-            Log.e("", "Error " + e);
+            Log.e(LOG_TAG, "Error " + e);
             return null;
         }finally {
             if(urlConnection != null){
@@ -143,7 +223,9 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
         return result;
     }
 
-    private String fetchHighestRatedMovies(HttpURLConnection urlConnection, BufferedReader reader){
+    private String fetchHighestRatedMovies(){
+        HttpURLConnection urlConnection = null;
+        BufferedReader reader = null;
         String sortOrder = "desc";
         String voteAverage = "vote_average" + "." + sortOrder;
         String result;
@@ -184,7 +266,7 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
             }
             result = buffer.toString();
         }catch (IOException e){
-            Log.e("", "Error " + e);
+            Log.e(LOG_TAG, "Error " + e);
             return null;
         }finally {
             if(urlConnection != null){
@@ -207,47 +289,15 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
     private boolean getDataFromJsonMovieList(String moviesJsonStr) throws JSONException {
         final String MOVIE_LIST = "results";
 
-        final String MOVIE_ID = "id";
-        final String MOVIE_TITLE = "title";
-        final String MOVIE_POSTER = "poster_path";
-        final String MOVIE_SYNOPSIS = "overview";
-        final String MOVIE_RELEASE_DATE = "release_date";
-        final String MOVIE_POPULARITY = "popularity";
-        final String MOVIE_VOTE_AVERAGE = "vote_average";
-
-        final String DATEFORMAT = "yyyy-MM-dd";
-
         try{
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray moviesArray = moviesJson.getJSONArray(MOVIE_LIST);
 
             Vector<ContentValues> cVVector = new Vector<>(moviesArray.length());
-            Calendar cal = Calendar.getInstance();
 
             for(int i = 0; i < moviesArray.length(); i++){
                 JSONObject movie = moviesArray.getJSONObject(i);
-                SimpleDateFormat dateFormat = new SimpleDateFormat(DATEFORMAT);
-                String poster = movie.getString(MOVIE_POSTER);
-                String synopsis = movie.getString(MOVIE_SYNOPSIS);
-                String release_date = movie.getString(MOVIE_RELEASE_DATE);
-
-                ContentValues values = new ContentValues();
-                values.put(MovieContract.MovieEntry.API_ID, movie.getLong(MOVIE_ID));
-                values.put(MovieContract.MovieEntry.TITLE, movie.getString(MOVIE_TITLE));
-                if(!synopsis.equals("null")) {
-                    values.put(MovieContract.MovieEntry.SYNOPSIS, synopsis);
-                }
-                if(!poster.equals("null")) {
-                    values.put(MovieContract.MovieEntry.POSTER, poster);
-                }
-                if(!release_date.equals("null")){
-                    cal.setTime(dateFormat.parse(release_date));
-                    values.put(MovieContract.MovieEntry.RELEASE_DATE, cal.getTimeInMillis());
-                }
-                values.put(MovieContract.MovieEntry.POPULARITY, movie.getDouble(MOVIE_POPULARITY));
-                values.put(MovieContract.MovieEntry.VOTE_AVERAGE, movie.getDouble(MOVIE_VOTE_AVERAGE));
-
-                cVVector.add(values);
+                cVVector.add(getDataFromJsonMovieDetails(movie));
             }
 
             int insertCount = 0;
@@ -258,15 +308,52 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
             }
 
             return insertCount > 0;
-        }catch (JSONException | ParseException e){
+        }catch (JSONException e){
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
         }
         return false;
     }
 
-    private boolean getDataFromJsonMovieDetails(String movieJsonStr){
-        // Temporary
-        return true;
+    private ContentValues getDataFromJsonMovieDetails(JSONObject movie){
+        final String MOVIE_ID = "id";
+        final String MOVIE_TITLE = "title";
+        final String MOVIE_POSTER = "poster_path";
+        final String MOVIE_SYNOPSIS = "overview";
+        final String MOVIE_RELEASE_DATE = "release_date";
+        final String MOVIE_POPULARITY = "popularity";
+        final String MOVIE_VOTE_AVERAGE = "vote_average";
+
+        final String DATEFORMAT = "yyyy-MM-dd";
+
+        ContentValues values = new ContentValues();
+
+        try{
+            SimpleDateFormat dateFormat = new SimpleDateFormat(DATEFORMAT);
+            String poster = movie.getString(MOVIE_POSTER);
+            String synopsis = movie.getString(MOVIE_SYNOPSIS);
+            String release_date = movie.getString(MOVIE_RELEASE_DATE);
+
+            values.put(MovieContract.MovieEntry.API_ID, movie.getLong(MOVIE_ID));
+            values.put(MovieContract.MovieEntry.TITLE, movie.getString(MOVIE_TITLE));
+            if(!synopsis.equals("null")) {
+                values.put(MovieContract.MovieEntry.SYNOPSIS, synopsis);
+            }
+            if(!poster.equals("null")) {
+                values.put(MovieContract.MovieEntry.POSTER, poster);
+            }
+            if(!(release_date.equals("null") || release_date.equals(""))){
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(dateFormat.parse(release_date));
+                values.put(MovieContract.MovieEntry.RELEASE_DATE, cal.getTimeInMillis());
+            }
+            values.put(MovieContract.MovieEntry.POPULARITY, movie.getDouble(MOVIE_POPULARITY));
+            values.put(MovieContract.MovieEntry.VOTE_AVERAGE, movie.getDouble(MOVIE_VOTE_AVERAGE));
+        }catch (JSONException | ParseException e){
+            Log.e(LOG_TAG, e.getMessage(), e);
+            e.printStackTrace();
+        }finally {
+            return values;
+        }
     }
 }
