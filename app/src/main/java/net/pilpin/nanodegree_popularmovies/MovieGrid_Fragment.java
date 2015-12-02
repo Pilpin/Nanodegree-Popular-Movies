@@ -143,7 +143,7 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
 
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            View view = inflater.inflate(R.layout.fragment_movie_grid_listitem, parent, false);
+            View view = inflater.inflate(R.layout.list_item_movie_grid, parent, false);
 
             ViewHolder viewHolder = new ViewHolder(view);
             view.setTag(viewHolder);

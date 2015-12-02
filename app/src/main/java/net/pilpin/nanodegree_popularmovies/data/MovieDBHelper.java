@@ -26,21 +26,17 @@ public class MovieDBHelper extends SQLiteOpenHelper {
 
     private final String SQL_CREATE_TRAILERS_TABLE = "CREATE TABLE " + MovieContract.TrailerEntry.TABLE_NAME + " (" +
             MovieContract.TrailerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-            MovieContract.TrailerEntry.API_ID + " INTEGER NOT NULL, " +
             MovieContract.TrailerEntry.KEY + " TEXT NOT NULL, " +
             MovieContract.TrailerEntry.NAME + " TEXT, " +
             MovieContract.TrailerEntry.SITE + " TEXT NOT NULL, " +
             MovieContract.TrailerEntry.SIZE + " TEXT, " +
-            MovieContract.TrailerEntry.MOVIE_ID + " INTEGER NOT NULL, " +
-            "UNIQUE (" + MovieContract.TrailerEntry.API_ID + ") ON CONFLICT REPLACE);";
+            MovieContract.TrailerEntry.MOVIE_ID + " INTEGER NOT NULL);";
 
     private final String SQL_CREATE_REVIEWS_TABLE = "CREATE TABLE " + MovieContract.ReviewEntry.TABLE_NAME + " (" +
             MovieContract.ReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-            MovieContract.ReviewEntry.API_ID + " INTEGER NOT NULL, " +
             MovieContract.ReviewEntry.AUTHOR + " TEXT, " +
             MovieContract.ReviewEntry.CONTENT + " TEXT NOT NULL, " +
-            MovieContract.ReviewEntry.URL + " TEXT, " +
-            "UNIQUE (" + MovieContract.ReviewEntry.API_ID + ") ON CONFLICT REPLACE);";
+            MovieContract.ReviewEntry.URL + " TEXT);";
 
     private final String SQL_ALTER_MOVIE_TABLE_FAVORITE = "ALTER TABLE " + MovieContract.MovieEntry.TABLE_NAME +
             " ADD COLUMN " + MovieContract.MovieEntry.FAVORITE + " INTEGER DEFAULT 0;";

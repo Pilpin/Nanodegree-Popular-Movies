@@ -129,14 +129,13 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
                 }
                 String movieJsonStr = buffer.toString();
 
-                if(movieJsonStr != null){
-                    JSONObject movie = new JSONObject(movieJsonStr);
-                    count += mContext.getContentResolver().update(
-                            MovieContract.MovieEntry.CONTENT_URI,
-                            getDataFromJsonMovieDetails(movie),
-                            MovieContract.MovieEntry.API_ID + " = ?",
-                            new String[]{movieId});
-                }
+                JSONObject movie = new JSONObject(movieJsonStr);
+                count += mContext.getContentResolver().update(
+                        MovieContract.MovieEntry.CONTENT_URI,
+                        getDataFromJsonMovieDetails(movie),
+                        MovieContract.MovieEntry.API_ID + " = ?",
+                        new String[]{movieId});
+
             } catch (IOException | JSONException e) {
                 Log.e(LOG_TAG, "Error " + e);
                 return false;
@@ -233,14 +232,14 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
         try{
             final String THEMOVIEDB_BASE_URL = "http://api.themoviedb.org";
             final String SORT_PARAM = "sort_by";
-            final String APPID_PARAM = "api_key";
+            final String APIKEY_PARAM = "api_key";
 
             Uri builtUri = Uri.parse(THEMOVIEDB_BASE_URL).buildUpon()
                     .appendPath("3")
                     .appendPath("discover")
                     .appendPath("movie")
                     .appendQueryParameter(SORT_PARAM, voteAverage)
-                    .appendQueryParameter(APPID_PARAM, BuildConfig.THEMOVIE_DB_API_KEY)
+                    .appendQueryParameter(APIKEY_PARAM, BuildConfig.THEMOVIE_DB_API_KEY)
                     .build();
 
             URL url = new URL(builtUri.toString());
@@ -352,8 +351,8 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
         }catch (JSONException | ParseException e){
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
-        }finally {
-            return values;
         }
+
+        return values;
     }
 }

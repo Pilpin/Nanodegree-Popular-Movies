@@ -46,7 +46,6 @@ public class MovieContract {
         public static final String TABLE_NAME = "trailers";
 
         public static final String MOVIE_ID = "movie_id";
-        public static final String API_ID = "api_id";
         public static final String NAME = "name";
         public static final String KEY = "site_key";
         public static final String SITE = "site";
@@ -69,12 +68,11 @@ public class MovieContract {
         public static final String TABLE_NAME = "reviews";
 
         public static final String MOVIE_ID = "movie_id";
-        public static final String API_ID = "api_id";
         public static final String URL = "url";
         public static final String CONTENT = "content";
         public static final String AUTHOR = "author";
 
-        public static final String ORDER_BY = API_ID + " ASC";
+        public static final String ORDER_BY = _ID + " ASC";
 
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_REVIEW).build();
 

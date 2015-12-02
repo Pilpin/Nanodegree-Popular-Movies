@@ -2,14 +2,19 @@ package net.pilpin.nanodegree_popularmovies;
 
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -20,7 +25,9 @@ import net.pilpin.nanodegree_popularmovies.data.MovieContract;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class MovieDetails_Fragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MovieDetails_Fragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
+    public static final String DETAIL_URI = "details";
+
     private final int MOVIE_LOADER = 2000;
 
     private static final String[] MOVIE_DETAILS_COLUMNS = {
@@ -30,6 +37,7 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
             MovieContract.MovieEntry.SYNOPSIS,
             MovieContract.MovieEntry.POSTER,
             MovieContract.MovieEntry.VOTE_AVERAGE,
+            MovieContract.MovieEntry.FAVORITE
     };
 
     static final int COL_MOVIE_DETAILS_ID = 0;
@@ -38,12 +46,16 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
     static final int COL_MOVIE_DETAILS_SYNOPSIS = 3;
     static final int COL_MOVIE_DETAILS_POSTER = 4;
     static final int COL_MOVIE_DETAILS_VOTE_AVERAGE = 5;
+    static final int COL_MOVIE_DETAILS_FAVORITE = 6;
 
-    private OnFragmentInteractionListener mListener;
-    private ImageView poster;
-    private TextView release_date;
-    private TextView vote_average;
-    private TextView synopsis;
+    private ImageView mPoster;
+    private TextView mTitle;
+    private TextView mReleaseDate;
+    private TextView mVoteAverage;
+    private CheckBox mFavorite;
+    private TextView mSynopsis;
+
+    private Uri mUri;
 
     public MovieDetails_Fragment() {
     }
@@ -56,19 +68,28 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_movie_details, container, false);
-        poster = (ImageView) v.findViewById(R.id.details_poster);
-        release_date = (TextView) v.findViewById(R.id.details_release_date);
-        vote_average = (TextView) v.findViewById(R.id.details_vote_average);
-        synopsis = (TextView) v.findViewById(R.id.details_synopsis);
-        return v;
+        Bundle args = getArguments();
+        if(args != null){
+            mUri = args.getParcelable(DETAIL_URI);
+        }
+
+        View view = inflater.inflate(R.layout.fragment_movie_details, container, false);
+        mPoster = (ImageView) view.findViewById(R.id.details_poster);
+        mTitle = (TextView) view.findViewById(R.id.details_title);
+        mReleaseDate = (TextView) view.findViewById(R.id.details_release_date);
+        mVoteAverage = (TextView) view.findViewById(R.id.details_vote_average);
+        mFavorite = (CheckBox) view.findViewById(R.id.details_favorite);
+        mSynopsis = (TextView) view.findViewById(R.id.details_synopsis);
+
+        mFavorite.setOnClickListener(this);
+
+        return view;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mListener = (OnFragmentInteractionListener) getActivity();
+        Log.d(this.getClass().toString(), "Test " + getActivity().getClass().toString());
         getLoaderManager().initLoader(MOVIE_LOADER, null, this);
     }
 
@@ -78,7 +99,7 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
         if(intent != null) {
             return new CursorLoader(
                     getActivity(),
-                    intent.getData(),
+                    mUri,
                     MOVIE_DETAILS_COLUMNS,
                     null,
                     null,
@@ -95,25 +116,26 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
             String dateStr;
             Calendar cal = Calendar.getInstance();
 
-            String voteStr = "Average Rate: " + data.getString(COL_MOVIE_DETAILS_VOTE_AVERAGE);
-            mListener.setActionBarTitle(data.getString(COL_MOVIE_DETAILS_TITLE));
-            vote_average.setText(voteStr);
+            setTitle(data.getString(COL_MOVIE_DETAILS_TITLE));
+
+            mVoteAverage.setText(data.getString(COL_MOVIE_DETAILS_VOTE_AVERAGE) + " / 10");
 
             if(!data.isNull(COL_MOVIE_DETAILS_RELEASE_DATE)) {
                 cal.setTimeInMillis(data.getLong(COL_MOVIE_DETAILS_RELEASE_DATE));
-                dateStr = "Released on " + cal.get(Calendar.DAY_OF_MONTH) + " " + cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) + " " + cal.get(Calendar.YEAR);
+                dateStr = cal.get(Calendar.DAY_OF_MONTH) + " " + cal.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) + " " + cal.get(Calendar.YEAR);
             }else{
                 dateStr = "Released date unknown";
             }
 
-            release_date.setText(dateStr);
+            mReleaseDate.setText(dateStr);
 
+            mFavorite.setChecked(data.getString(COL_MOVIE_DETAILS_FAVORITE).equals(MovieContract.MovieEntry.FAVORITED));
 
             if(!data.isNull(COL_MOVIE_DETAILS_SYNOPSIS)) {
-                synopsis.setText(data.getString(COL_MOVIE_DETAILS_SYNOPSIS));
+                mSynopsis.setText(data.getString(COL_MOVIE_DETAILS_SYNOPSIS));
             }
             if(!data.isNull(COL_MOVIE_DETAILS_POSTER)) {
-                Picasso.with(getActivity()).load(POSTER_URL_BASE_PATH + data.getString(COL_MOVIE_DETAILS_POSTER)).placeholder(R.drawable.poster_holder).into(poster);
+                Picasso.with(getActivity()).load(POSTER_URL_BASE_PATH + data.getString(COL_MOVIE_DETAILS_POSTER)).placeholder(R.drawable.poster_holder).into(mPoster);
             }
         }
     }
@@ -123,7 +145,34 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
 
     }
 
-    public interface OnFragmentInteractionListener {
-        void setActionBarTitle(String title);
+    @Override
+    public void onClick(View v) {
+        CheckBox cb = (CheckBox) v;
+        ContentValues cv = new ContentValues();
+        if(cb.isChecked()){
+            cv.put(MovieContract.MovieEntry.FAVORITE, MovieContract.MovieEntry.FAVORITED);
+        }else{
+            cv.put(MovieContract.MovieEntry.FAVORITE, MovieContract.MovieEntry.NOT_FAVORITED);
+        }
+
+        getActivity().getContentResolver().update(
+                mUri,
+                cv,
+                null,
+                null
+        );
+    }
+
+    public void setTitle(String title){
+        if (mTitle != null){
+            mTitle.setText(title);
+        }else{
+            if(getActivity().getClass().equals(MovieDetails_Activity.class)) {
+                ActionBar actionBar = ((MovieDetails_Activity) getActivity()).getSupportActionBar();
+                if(actionBar != null) {
+                    actionBar.setTitle(title);
+                }
+            }
+        }
     }
 }

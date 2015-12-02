@@ -16,6 +16,10 @@
     </string-array>
 
     <string name="pref_last_updated_key">last_updated</string>
+    <string name="title_movie_list">Movies</string>
+    <string name="title_movie_detail">Movie Detail</string>
+    <string name="title_item_list">Items</string>
+    <string name="title_item_detail">Item Detail</string>
 
 
 </resources>

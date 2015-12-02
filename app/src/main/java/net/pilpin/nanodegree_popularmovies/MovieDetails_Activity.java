@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-public class MovieDetails_Activity extends AppCompatActivity implements MovieDetails_Fragment.OnFragmentInteractionListener {
+public class MovieDetails_Activity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -13,11 +13,17 @@ public class MovieDetails_Activity extends AppCompatActivity implements MovieDet
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-    }
 
-    @Override
-    public void setActionBarTitle(String title) {
-        getSupportActionBar().setTitle(title);
+        if(savedInstanceState == null){
+            Bundle args = new Bundle();
+            args.putParcelable(MovieDetails_Fragment.DETAIL_URI, getIntent().getData());
+
+            MovieDetails_Fragment fragment = new MovieDetails_Fragment();
+            fragment.setArguments(args);
+
+            getFragmentManager().beginTransaction()
+                    .add(R.id.movie_detail_container, fragment)
+                    .commit();
+        }
     }
 }
