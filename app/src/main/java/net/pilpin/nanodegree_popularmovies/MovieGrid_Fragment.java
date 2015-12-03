@@ -23,16 +23,19 @@ import net.pilpin.nanodegree_popularmovies.data.MovieContract;
 public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor> {
     public static final int MOVIE_LOADER_POPULARITY = 10000;
     public static final int MOVIE_LOADER_VOTE = 10101;
+    public static final int MOVIE_LOADER_FAVORITE = 11111;
 
     private static final String[] MOVIES_COLUMNS = {
             MovieContract.MovieEntry._ID,
+            MovieContract.MovieEntry.API_ID,
             MovieContract.MovieEntry.TITLE,
             MovieContract.MovieEntry.POSTER,
     };
 
     static final int COL_MOVIES_ID = 0;
-    static final int COL_MOVIES_TITLE = 1;
-    static final int COL_MOVIES_POSTER = 2;
+    static final int COL_MOVIES_API_ID = 1;
+    static final int COL_MOVIES_TITLE = 2;
+    static final int COL_MOVIES_POSTER = 3;
 
     private OnFragmentInteractionListener mListener;
     private MovieAdapter mAdapter;
@@ -55,10 +58,9 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
         view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mListener.onFragmentInteraction(MovieContract.MovieEntry.buildMovieUri(id));
+                mListener.onFragmentInteraction(MovieContract.MovieEntry.buildMovieUri(id), (long) view.getTag(R.integer.movie_api_id));
             }
         });
-
         return view;
     }
 
@@ -80,6 +82,8 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
             getLoaderManager().restartLoader(MOVIE_LOADER_POPULARITY, null, this);
         } else if (id == 1) {
             getLoaderManager().restartLoader(MOVIE_LOADER_VOTE, null, this);
+        } else if (id == 2) {
+            getLoaderManager().restartLoader(MOVIE_LOADER_FAVORITE, null, this);
         }
     }
 
@@ -107,6 +111,14 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
                         null,
                         null,
                         MovieContract.MovieEntry.ORDER_BY_VOTE_AVERAGE);
+            case MOVIE_LOADER_FAVORITE:
+                return new CursorLoader(
+                        getActivity(),
+                        MovieContract.MovieEntry.CONTENT_URI,
+                        MOVIES_COLUMNS,
+                        MovieContract.MovieEntry.FAVORITE + " = ?",
+                        new String[]{MovieContract.MovieEntry.FAVORITED},
+                        null);
             default:
                 return null;
         }
@@ -123,7 +135,7 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
     }
 
     private class MovieAdapter extends CursorAdapter{
-        LayoutInflater inflater;
+        private LayoutInflater inflater;
 
         public MovieAdapter(Context context, Cursor c, boolean autoRequery) {
             super(context, c, autoRequery);
@@ -132,10 +144,10 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
 
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            View view = inflater.inflate(R.layout.fragment_movie_grid_listitem, parent, false);
+            View view = inflater.inflate(R.layout.grid_item_movie, parent, false);
 
             ViewHolder viewHolder = new ViewHolder(view);
-            view.setTag(viewHolder);
+            view.setTag(R.integer.view_holder, viewHolder);
 
             return view;
         }
@@ -143,8 +155,9 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
             final String POSTER_URL_BASE_PATH = "http://image.tmdb.org/t/p/" + getResources().getString(R.string.poster_movie_grid_size) + "/";
-            ViewHolder viewHolder = (ViewHolder) view.getTag();
+            ViewHolder viewHolder = (ViewHolder) view.getTag(R.integer.view_holder);
 
+            view.setTag(R.integer.movie_api_id, cursor.getLong(COL_MOVIES_API_ID));
             String posterUrl = POSTER_URL_BASE_PATH + cursor.getString(COL_MOVIES_POSTER);
             Picasso.with(context).load(posterUrl).placeholder(R.drawable.poster_holder).into(viewHolder.posterView);
         }
@@ -159,7 +172,7 @@ public class MovieGrid_Fragment extends Fragment implements AdapterView.OnItemSe
     }
 
     public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(Uri uri, long movieApiId);
     }
 
 }

@@ -3,7 +3,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 tools:context="net.pilpin.nanodegree_popularmovies.MovieDetails_Fragment"
-                android:padding="@dimen/padding">
+                android:paddingLeft="@dimen/padding"
+                android:paddingTop="@dimen/padding"
+                android:paddingRight="@dimen/padding"
+                android:paddingBottom="@dimen/padding">
 
     <ImageView
         android:layout_width="@dimen/movie_details_poster_width"
@@ -18,12 +21,24 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textStyle="bold"
-        android:id="@+id/details_vote_average"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/details_title"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/details_poster"
         android:layout_toEndOf="@+id/details_poster"
+        android:layout_marginStart="@dimen/margin"
+        android:layout_marginLeft="@dimen/margin"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textStyle="bold"
+        android:id="@+id/details_vote_average"
+        android:layout_below="@+id/details_title"
+        android:layout_toRightOf="@+id/details_poster"
+        android:layout_toEndOf="@+id/details_poster"
+        android:layout_marginTop="@dimen/margin_large"
         android:layout_marginStart="@dimen/margin"
         android:layout_marginLeft="@dimen/margin"/>
 

@@ -13,6 +13,8 @@ public class MovieProvider extends ContentProvider {
 
     static final int MOVIES = 1000;
     static final int MOVIE = 1001;
+    static final int TRAILERS = 1002;
+    static final int REVIEWS = 1003;
 
     public MovieProvider() {
     }
@@ -21,6 +23,8 @@ public class MovieProvider extends ContentProvider {
         UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         uriMatcher.addURI(MovieContract.CONTENT_AUTHORITY, MovieContract.PATH_MOVIE, MOVIES);
         uriMatcher.addURI(MovieContract.CONTENT_AUTHORITY, MovieContract.PATH_MOVIE + "/#", MOVIE);
+        uriMatcher.addURI(MovieContract.CONTENT_AUTHORITY, MovieContract.PATH_TRAILER + "/#", TRAILERS);
+        uriMatcher.addURI(MovieContract.CONTENT_AUTHORITY, MovieContract.PATH_REVIEW + "/#", REVIEWS);
 
         return uriMatcher;
     }
@@ -38,6 +42,10 @@ public class MovieProvider extends ContentProvider {
                 return MovieContract.MovieEntry.CONTENT_TYPE;
             case MOVIE:
                 return MovieContract.MovieEntry.CONTENT_ITEM_TYPE;
+            case TRAILERS:
+                return MovieContract.TrailerEntry.CONTENT_TYPE;
+            case REVIEWS:
+                return MovieContract.ReviewEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
@@ -68,6 +76,24 @@ public class MovieProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+            case TRAILERS:
+                cursor = db.query(MovieContract.TrailerEntry.TABLE_NAME,
+                        projection,
+                        MovieContract.TrailerEntry.MOVIE_ID + " = ?",
+                        new String[]{uri.getLastPathSegment()},
+                        null,
+                        null,
+                        sortOrder);
+                break;
+            case REVIEWS:
+                cursor = db.query(MovieContract.ReviewEntry.TABLE_NAME,
+                        projection,
+                        MovieContract.ReviewEntry.MOVIE_ID + " = ?",
+                        new String[]{uri.getLastPathSegment()},
+                        null,
+                        null,
+                        sortOrder);
+                break;
             default:
                 throw new UnsupportedOperationException("Query - Unknown Uri: " + uri);
         }
@@ -79,11 +105,28 @@ public class MovieProvider extends ContentProvider {
     public Uri insert(Uri uri, ContentValues values) {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         Uri returnUri;
+        long id;
         switch (sUriMatcher.match(uri)){
             case MOVIES:
-                long id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, values);
+                id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, values);
                 if(id != -1){
                     returnUri = MovieContract.MovieEntry.buildMovieUri(id);
+                }else{
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                }
+                break;
+            case TRAILERS:
+                id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, values);
+                if(id != -1){
+                    returnUri = uri;
+                }else{
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                }
+                break;
+            case REVIEWS:
+                id = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, values);
+                if(id != -1){
+                    returnUri = uri;
                 }else{
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
@@ -141,6 +184,18 @@ public class MovieProvider extends ContentProvider {
                         MovieContract.MovieEntry._ID + " = ?",
                         new String[]{uri.getLastPathSegment()});
                 break;
+            case TRAILERS:
+                count = db.delete(
+                        MovieContract.TrailerEntry.TABLE_NAME,
+                        MovieContract.TrailerEntry.MOVIE_ID + " = ?",
+                        new String[]{uri.getLastPathSegment()});
+                break;
+            case REVIEWS:
+                count = db.delete(
+                        MovieContract.ReviewEntry.TABLE_NAME,
+                        MovieContract.ReviewEntry.MOVIE_ID + " = ?",
+                        new String[]{uri.getLastPathSegment()});
+                break;
             default:
                 throw new UnsupportedOperationException("Delete - Unknown Uri: " + uri);
         }
@@ -157,17 +212,38 @@ public class MovieProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case MOVIES:
                 db.beginTransaction();
-                try {
-                    for (ContentValues value : values) {
-                        long id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
-                        if(id != -1){
-                            count++;
-                        }
+                for (ContentValues value : values) {
+                    long id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
+                    if(id != -1){
+                        count++;
                     }
-                    db.setTransactionSuccessful();
-                }finally {
-                    db.endTransaction();
                 }
+                db.setTransactionSuccessful();
+                db.endTransaction();
+                getContext().getContentResolver().notifyChange(uri, null);
+                return count;
+            case TRAILERS:
+                db.beginTransaction();
+                for (ContentValues value : values) {
+                    long id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, value);
+                    if(id != -1){
+                        count++;
+                    }
+                }
+                db.setTransactionSuccessful();
+                db.endTransaction();
+                getContext().getContentResolver().notifyChange(uri, null);
+                return count;
+            case REVIEWS:
+                db.beginTransaction();
+                for (ContentValues value : values) {
+                    long id = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, value);
+                    if(id != -1){
+                        count++;
+                    }
+                }
+                db.setTransactionSuccessful();
+                db.endTransaction();
                 getContext().getContentResolver().notifyChange(uri, null);
                 return count;
             default:

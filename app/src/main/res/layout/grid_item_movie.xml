@@ -2,6 +2,7 @@
 <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
            android:orientation="vertical"
            android:id="@+id/poster"
+           android:foreground="@drawable/item_poster_selector"
            android:layout_width="@dimen/movie_grid_poster_width"
            android:layout_height="@dimen/movie_grid_poster_height"
            android:adjustViewBounds="true"

@@ -1,11 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
 <GridView xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
           tools:context="net.pilpin.nanodegree_popularmovies.MovieGrid_Fragment"
           android:id="@+id/gridView"
           android:layout_width="match_parent"
           android:layout_height="match_parent"
-          android:numColumns="5"
-          android:stretchMode="columnWidth"
+          android:choiceMode="singleChoice"
+          android:numColumns="auto_fit"
+          android:columnWidth="@dimen/movie_grid_poster_width"
+          android:padding="@dimen/movie_grid_spacing"
           android:verticalSpacing="@dimen/movie_grid_spacing"
           android:horizontalSpacing="@dimen/movie_grid_spacing"/>
+

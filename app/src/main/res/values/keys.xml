@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="view_holder">0</integer>
+    <integer name="movie_api_id">1</integer>
+
+    <integer name="trailer_site">2</integer>
+    <integer name="trailer_key">3</integer>
+
+    <integer name="review_url">4</integer>
+</resources>
