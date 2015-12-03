@@ -3,11 +3,13 @@
 
     <string name="accessibility_poster_description">Movie poster</string>
 
-    <string name="offline_no_movies">You are offline. Impossible to fetch movie list.</string>
-    <string name="offline_movies">You are offline. Impossible to update movie list.</string>
+    <string name="action_share">Share Trailer</string>
+
     <string name="movies_most_popular">Most Popular</string>
     <string name="movies_highest_rated">Highest Rated</string>
     <string name="movies_favorite">Favorite</string>
+    <string name="movie_reviews">Reviews</string>
+    <string name="movie_trailers">Trailers</string>
 
     <string-array name="nav_spinner">
         <item>@string/movies_most_popular</item>
@@ -16,10 +18,5 @@
     </string-array>
 
     <string name="pref_last_updated_key">last_updated</string>
-    <string name="title_movie_list">Movies</string>
-    <string name="title_movie_detail">Movie Detail</string>
-    <string name="title_item_list">Items</string>
-    <string name="title_item_detail">Item Detail</string>
-
 
 </resources>

@@ -13,10 +13,13 @@ import android.widget.Spinner;
 
 import java.util.Calendar;
 
-public class MovieGridActivity extends AppCompatActivity implements MovieGrid_Fragment.OnFragmentInteractionListener {
-    private final String DETAIL_FRAGMENT_TAG = "detailfragment";
+public class MovieGrid_Activity extends AppCompatActivity implements MovieGrid_Fragment.OnFragmentInteractionListener {
+    private final String DETAILS_FRAGMENT_TAG = "details";
+    private final String TRAILERS_FRAGMENT_TAG = "trailers";
+    private final String REVIEWS_FRAGMENT_TAG = "reviews";
     private final String SPINNER_POSITION = "spinner_position";
-    private Spinner spinner;
+
+    private Spinner mSpinner;
     private boolean mTwoPane;
 
     @Override
@@ -24,18 +27,17 @@ public class MovieGridActivity extends AppCompatActivity implements MovieGrid_Fr
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_grid);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         AdapterView.OnItemSelectedListener fragment = (AdapterView.OnItemSelectedListener) getFragmentManager().findFragmentById(R.id.fragment_movies_grid);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getSupportActionBar().getThemedContext(), R.array.nav_spinner, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner = (Spinner) findViewById(R.id.spinner_nav);
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(fragment);
+        mSpinner = (Spinner) findViewById(R.id.spinner_nav);
+        mSpinner.setAdapter(adapter);
+        mSpinner.setOnItemSelectedListener(fragment);
 
-        if (findViewById(R.id.movie_detail_container) != null) {
+        if (findViewById(R.id.movie_details_container) != null) {
             mTwoPane = true;
         }
     }
@@ -59,28 +61,26 @@ public class MovieGridActivity extends AppCompatActivity implements MovieGrid_Fr
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        spinner.setSelection(savedInstanceState.getInt(SPINNER_POSITION));
+        mSpinner.setSelection(savedInstanceState.getInt(SPINNER_POSITION));
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt(SPINNER_POSITION, spinner.getSelectedItemPosition());
+        outState.putInt(SPINNER_POSITION, mSpinner.getSelectedItemPosition());
         super.onSaveInstanceState(outState);
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
+    public void onFragmentInteraction(Uri uri, long movieApiId) {
         if(mTwoPane){
-            Bundle args = new Bundle();
-            args.putParcelable(MovieDetails_Fragment.DETAIL_URI, uri);
-
-            MovieDetails_Fragment fragment = new MovieDetails_Fragment();
-            fragment.setArguments(args);
             getFragmentManager().beginTransaction()
-                    .replace(R.id.movie_detail_container, fragment, DETAIL_FRAGMENT_TAG)
+                    .replace(R.id.movie_details_container, MovieDetails_Fragment.newInstance(uri), DETAILS_FRAGMENT_TAG)
+                    .replace(R.id.movie_trailers_container, MovieTrailers_Fragment.newInstance(uri, movieApiId), TRAILERS_FRAGMENT_TAG)
+                    .replace(R.id.movie_reviews_container, MovieReviews_Fragment.newInstance(uri, movieApiId), REVIEWS_FRAGMENT_TAG)
                     .commit();
+
         }else {
-            Intent intent = new Intent(this, MovieDetails_Activity.class).setData(uri);
+            Intent intent = new Intent(this, MovieDetails_Activity.class).setData(uri).putExtra(MovieDetails_Activity.MOVIE_API_ID, movieApiId);
             startActivity(intent);
         }
     }

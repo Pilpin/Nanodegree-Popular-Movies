@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MovieGridActivity"
+            android:name=".MovieGrid_Activity"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -22,11 +22,11 @@
         </activity>
         <activity
             android:name=".MovieDetails_Activity"
-            android:parentActivityName=".MovieGridActivity"
+            android:parentActivityName=".MovieGrid_Activity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MovieGridActivity"/>
+                android:value=".MovieGrid_Activity"/>
         </activity>
 
         <provider

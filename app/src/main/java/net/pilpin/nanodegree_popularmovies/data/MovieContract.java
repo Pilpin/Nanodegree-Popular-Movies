@@ -9,8 +9,8 @@ public class MovieContract {
     public static final String CONTENT_AUTHORITY = "net.pilpin.nanodegree_popularmovies.provider";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
     public static final String PATH_MOVIE = "movie";
-    public static final String PATH_TRAILER = PATH_MOVIE + "/trailer";
-    public static final String PATH_REVIEW = PATH_MOVIE + "/review";
+    public static final String PATH_TRAILER = "trailer";
+    public static final String PATH_REVIEW = "review";
 
     public static final class MovieEntry implements BaseColumns {
         public static final String TABLE_NAME = "movies";
@@ -50,9 +50,8 @@ public class MovieContract {
         public static final String KEY = "site_key";
         public static final String SITE = "site";
         public static final String SIZE = "size";
-        public static final String TYPE = "type";
 
-        public static final String ORDER_BY = SITE + " ASC";
+        public static final String ORDER_BY = NAME + " DESC";
 
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRAILER).build();
 

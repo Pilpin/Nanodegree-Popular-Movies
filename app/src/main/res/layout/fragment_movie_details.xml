@@ -3,10 +3,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 tools:context="net.pilpin.nanodegree_popularmovies.MovieDetails_Fragment"
-                android:paddingLeft="@dimen/movie_details_padding"
-                android:paddingTop="@dimen/movie_details_padding"
-                android:paddingRight="@dimen/movie_details_padding"
-                android:paddingBottom="@dimen/movie_details_padding">
+                android:padding="@dimen/padding">
 
     <ImageView
         android:layout_width="@dimen/movie_details_poster_width"
@@ -27,8 +24,8 @@
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/details_poster"
         android:layout_toEndOf="@+id/details_poster"
-        android:layout_marginStart="@dimen/movie_details_margin"
-        android:layout_marginLeft="@dimen/movie_details_margin"/>
+        android:layout_marginStart="@dimen/margin"
+        android:layout_marginLeft="@dimen/margin"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -38,9 +35,9 @@
         android:layout_below="@+id/details_vote_average"
         android:layout_toRightOf="@+id/details_poster"
         android:layout_toEndOf="@+id/details_poster"
-        android:layout_marginTop="@dimen/movie_details_margin"
-        android:layout_marginStart="@dimen/movie_details_margin"
-        android:layout_marginLeft="@dimen/movie_details_margin"/>
+        android:layout_marginTop="@dimen/margin"
+        android:layout_marginStart="@dimen/margin"
+        android:layout_marginLeft="@dimen/margin"/>
 
     <CheckBox
         android:id="@+id/details_favorite"
@@ -50,9 +47,9 @@
         android:layout_below="@+id/details_release_date"
         android:layout_toRightOf="@+id/details_poster"
         android:layout_toEndOf="@+id/details_poster"
-        android:layout_marginTop="@dimen/movie_details_margin"
-        android:layout_marginStart="@dimen/movie_details_margin_large"
-        android:layout_marginLeft="@dimen/movie_details_margin_large"/>
+        android:layout_marginTop="@dimen/margin"
+        android:layout_marginStart="@dimen/margin_large"
+        android:layout_marginLeft="@dimen/margin_large"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -62,5 +59,5 @@
         android:layout_below="@+id/details_poster"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="@dimen/movie_details_margin"/>
+        android:layout_marginTop="@dimen/margin"/>
 </RelativeLayout>

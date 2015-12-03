@@ -4,7 +4,7 @@
           android:id="@+id/gridView"
           android:layout_width="match_parent"
           android:layout_height="match_parent"
-          android:choiceMode="none"
+          android:choiceMode="singleChoice"
           android:numColumns="auto_fit"
           android:columnWidth="@dimen/movie_grid_poster_width"
           android:padding="@dimen/movie_grid_spacing"

@@ -118,7 +118,7 @@ public class MovieProvider extends ContentProvider {
             case TRAILERS:
                 id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, values);
                 if(id != -1){
-                    returnUri = MovieContract.TrailerEntry.buildMovieUri(id);
+                    returnUri = uri;
                 }else{
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
@@ -126,7 +126,7 @@ public class MovieProvider extends ContentProvider {
             case REVIEWS:
                 id = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, values);
                 if(id != -1){
-                    returnUri = MovieContract.ReviewEntry.buildMovieUri(id);
+                    returnUri = uri;
                 }else{
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
@@ -212,47 +212,38 @@ public class MovieProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case MOVIES:
                 db.beginTransaction();
-                try {
-                    for (ContentValues value : values) {
-                        long id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
-                        if(id != -1){
-                            count++;
-                        }
+                for (ContentValues value : values) {
+                    long id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
+                    if(id != -1){
+                        count++;
                     }
-                    db.setTransactionSuccessful();
-                }finally {
-                    db.endTransaction();
                 }
+                db.setTransactionSuccessful();
+                db.endTransaction();
                 getContext().getContentResolver().notifyChange(uri, null);
                 return count;
             case TRAILERS:
                 db.beginTransaction();
-                try {
-                    for (ContentValues value : values) {
-                        long id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, value);
-                        if(id != -1){
-                            count++;
-                        }
+                for (ContentValues value : values) {
+                    long id = db.insert(MovieContract.TrailerEntry.TABLE_NAME, null, value);
+                    if(id != -1){
+                        count++;
                     }
-                    db.setTransactionSuccessful();
-                }finally {
-                    db.endTransaction();
                 }
+                db.setTransactionSuccessful();
+                db.endTransaction();
                 getContext().getContentResolver().notifyChange(uri, null);
                 return count;
             case REVIEWS:
                 db.beginTransaction();
-                try {
-                    for (ContentValues value : values) {
-                        long id = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, value);
-                        if(id != -1){
-                            count++;
-                        }
+                for (ContentValues value : values) {
+                    long id = db.insert(MovieContract.ReviewEntry.TABLE_NAME, null, value);
+                    if(id != -1){
+                        count++;
                     }
-                    db.setTransactionSuccessful();
-                }finally {
-                    db.endTransaction();
                 }
+                db.setTransactionSuccessful();
+                db.endTransaction();
                 getContext().getContentResolver().notifyChange(uri, null);
                 return count;
             default:

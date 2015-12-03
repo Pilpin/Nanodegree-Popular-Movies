@@ -4,13 +4,11 @@ import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.ContentValues;
 import android.content.CursorLoader;
-import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,8 +24,6 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class MovieDetails_Fragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
-    public static final String DETAIL_URI = "details";
-
     private final int MOVIE_LOADER = 2000;
 
     private static final String[] MOVIE_DETAILS_COLUMNS = {
@@ -57,6 +53,16 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
 
     private Uri mUri;
 
+    public static MovieDetails_Fragment newInstance(Uri data){
+        Bundle args = new Bundle();
+        args.putParcelable(MovieDetails_Activity.MOVIE_DETAIL_URI, data);
+
+        MovieDetails_Fragment fragment = new MovieDetails_Fragment();
+        fragment.setArguments(args);
+
+        return fragment;
+    }
+
     public MovieDetails_Fragment() {
     }
 
@@ -70,7 +76,7 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
                              Bundle savedInstanceState) {
         Bundle args = getArguments();
         if(args != null){
-            mUri = args.getParcelable(DETAIL_URI);
+            mUri = args.getParcelable(MovieDetails_Activity.MOVIE_DETAIL_URI);
         }
 
         View view = inflater.inflate(R.layout.fragment_movie_details, container, false);
@@ -89,14 +95,12 @@ public class MovieDetails_Fragment extends Fragment implements LoaderManager.Loa
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.d(this.getClass().toString(), "Test " + getActivity().getClass().toString());
         getLoaderManager().initLoader(MOVIE_LOADER, null, this);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Intent intent = getActivity().getIntent();
-        if(intent != null) {
+        if(mUri != null) {
             return new CursorLoader(
                     getActivity(),
                     mUri,

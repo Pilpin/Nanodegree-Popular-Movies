@@ -23,11 +23,13 @@ import java.util.Vector;
 public class FetchReviewsTask extends AsyncTask<Void, Void, Boolean> {
     private final String LOG_TAG = this.getClass().toString();
     private final Context mContext;
-    private final String mMovieId;
+    private final long mMovieId;
+    private final long mMovieApiId;
 
-    public FetchReviewsTask(Context context, long movieApiId){
+    public FetchReviewsTask(Context context, long movieId, long movieApiId){
         mContext = context;
-        mMovieId = Long.toString(movieApiId);
+        mMovieId = movieId;
+        mMovieApiId = movieApiId;
     }
 
     @Override
@@ -40,9 +42,9 @@ public class FetchReviewsTask extends AsyncTask<Void, Void, Boolean> {
         Boolean result = false;
 
         mContext.getContentResolver().delete(
-                MovieContract.ReviewEntry.CONTENT_URI,
-                MovieContract.ReviewEntry.MOVIE_ID + " = ?",
-                new String[]{mMovieId});
+                MovieContract.ReviewEntry.buildMovieUri(mMovieId),
+                null,
+                null);
 
         try{
             String reviewsJsonStr = fetchReviews();
@@ -72,7 +74,7 @@ public class FetchReviewsTask extends AsyncTask<Void, Void, Boolean> {
             Uri builtUri = Uri.parse(THEMOVIEDB_BASE_URL).buildUpon()
                     .appendPath("3")
                     .appendPath("movie")
-                    .appendPath(mMovieId)
+                    .appendPath(Long.toString(mMovieApiId))
                     .appendPath("reviews")
                     .appendQueryParameter(APIKEY_PARAM, BuildConfig.THEMOVIE_DB_API_KEY)
                     .build();
@@ -137,7 +139,7 @@ public class FetchReviewsTask extends AsyncTask<Void, Void, Boolean> {
             if(cVVector.size() > 0){
                 ContentValues[] valuesArray = new ContentValues[cVVector.size()];
                 cVVector.toArray(valuesArray);
-                insertCount = mContext.getContentResolver().bulkInsert(MovieContract.ReviewEntry.CONTENT_URI, valuesArray);
+                insertCount = mContext.getContentResolver().bulkInsert(MovieContract.ReviewEntry.buildMovieUri(mMovieId), valuesArray);
             }
 
             return insertCount > 0;

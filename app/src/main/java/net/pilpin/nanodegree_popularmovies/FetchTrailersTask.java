@@ -23,11 +23,13 @@ import java.util.Vector;
 public class FetchTrailersTask extends AsyncTask<Void, Void, Boolean> {
     private final String LOG_TAG = this.getClass().toString();
     private final Context mContext;
-    private final String mMovieId;
+    private final long mMovieId;
+    private final long mMovieApiId;
 
-    public FetchTrailersTask(Context context, long movieApiId){
+    public FetchTrailersTask(Context context, long movieId, long movieApiId){
         mContext = context;
-        mMovieId = Long.toString(movieApiId);
+        mMovieId = movieId;
+        mMovieApiId = movieApiId;
     }
 
     @Override
@@ -40,9 +42,9 @@ public class FetchTrailersTask extends AsyncTask<Void, Void, Boolean> {
         Boolean result = false;
 
         mContext.getContentResolver().delete(
-                MovieContract.TrailerEntry.CONTENT_URI,
-                MovieContract.TrailerEntry.MOVIE_ID + " = ?",
-                new String[]{mMovieId});
+                MovieContract.TrailerEntry.buildMovieUri(mMovieId),
+                null,
+                null);
 
         try{
             String reviewsJsonStr = fetchTrailers();
@@ -72,7 +74,7 @@ public class FetchTrailersTask extends AsyncTask<Void, Void, Boolean> {
             Uri builtUri = Uri.parse(THEMOVIEDB_BASE_URL).buildUpon()
                     .appendPath("3")
                     .appendPath("movie")
-                    .appendPath(mMovieId)
+                    .appendPath(Long.toString(mMovieApiId))
                     .appendPath("videos")
                     .appendQueryParameter(APIKEY_PARAM, BuildConfig.THEMOVIE_DB_API_KEY)
                     .build();
@@ -137,7 +139,7 @@ public class FetchTrailersTask extends AsyncTask<Void, Void, Boolean> {
             if(cVVector.size() > 0){
                 ContentValues[] valuesArray = new ContentValues[cVVector.size()];
                 cVVector.toArray(valuesArray);
-                insertCount = mContext.getContentResolver().bulkInsert(MovieContract.TrailerEntry.CONTENT_URI, valuesArray);
+                insertCount = mContext.getContentResolver().bulkInsert(MovieContract.TrailerEntry.buildMovieUri(mMovieId), valuesArray);
             }
 
             return insertCount > 0;
@@ -153,7 +155,6 @@ public class FetchTrailersTask extends AsyncTask<Void, Void, Boolean> {
         final String TRAILER_NAME = "name";
         final String TRAILER_SITE = "site";
         final String TRAILER_SIZE = "size";
-        final String TRAILER_TYPE = "type";
 
         ContentValues values = new ContentValues();
 
@@ -163,7 +164,6 @@ public class FetchTrailersTask extends AsyncTask<Void, Void, Boolean> {
             values.put(MovieContract.TrailerEntry.NAME, trailer.getString(TRAILER_NAME));
             values.put(MovieContract.TrailerEntry.SITE, trailer.getString(TRAILER_SITE));
             values.put(MovieContract.TrailerEntry.SIZE, trailer.getString(TRAILER_SIZE));
-            values.put(MovieContract.TrailerEntry.TYPE, trailer.getString(TRAILER_TYPE));
         }catch (JSONException e){
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();

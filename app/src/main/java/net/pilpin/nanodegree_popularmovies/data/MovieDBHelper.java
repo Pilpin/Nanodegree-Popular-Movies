@@ -36,7 +36,8 @@ public class MovieDBHelper extends SQLiteOpenHelper {
             MovieContract.ReviewEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
             MovieContract.ReviewEntry.AUTHOR + " TEXT, " +
             MovieContract.ReviewEntry.CONTENT + " TEXT NOT NULL, " +
-            MovieContract.ReviewEntry.URL + " TEXT);";
+            MovieContract.ReviewEntry.URL + " TEXT, " +
+            MovieContract.ReviewEntry.MOVIE_ID + " INTEGER NOT NULL);";
 
     private final String SQL_ALTER_MOVIE_TABLE_FAVORITE = "ALTER TABLE " + MovieContract.MovieEntry.TABLE_NAME +
             " ADD COLUMN " + MovieContract.MovieEntry.FAVORITE + " INTEGER DEFAULT 0;";
