@@ -30,7 +30,6 @@ public class MovieReviews_Fragment extends Fragment implements LoaderManager.Loa
     private long mMovieApiId;
 
     private LinearLayout content;
-    private TextView title;
 
     public static MovieReviews_Fragment newInstance(Uri data, long movieApiId){
         Bundle args = new Bundle();
@@ -61,7 +60,6 @@ public class MovieReviews_Fragment extends Fragment implements LoaderManager.Loa
         }
 
         content = (LinearLayout) inflater.inflate(R.layout.fragment_movie_reviews, container, false);
-        title = (TextView) container.findViewById(R.id.reviews_title);
 
         getLoaderManager().initLoader(REVIEWS_LOADER, null, this);
 

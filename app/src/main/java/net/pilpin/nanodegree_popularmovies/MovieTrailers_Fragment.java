@@ -27,14 +27,10 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
 
     private static final String[] TRAILERS_COLUMNS = {
             MovieContract.TrailerEntry.NAME,
-            MovieContract.TrailerEntry.KEY,
-            MovieContract.TrailerEntry.SITE,
-            MovieContract.TrailerEntry.SIZE};
+            MovieContract.TrailerEntry.KEY};
 
     static final int COL_TRAILER_NAME = 0;
     static final int COL_TRAILER_KEY = 1;
-    static final int COL_TRAILER_SITE = 2;
-    static final int COL_TRAILER_SIZE = 3;
 
     private long mMovie_id;
     private long mMovieApiId;
@@ -45,7 +41,6 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
     private boolean mOptionsMenuItemVisible = false;
 
     private LinearLayout content;
-    private TextView title;
 
     public static MovieTrailers_Fragment newInstance(Uri data, long movieApiId){
         Bundle args = new Bundle();
@@ -77,7 +72,6 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
         }
 
         content = (LinearLayout) inflater.inflate(R.layout.fragment_movie_trailers, container, false);
-        title = (TextView) container.findViewById(R.id.trailers_title);
 
         getLoaderManager().initLoader(TRAILERS_LOADER, null, this);
 
