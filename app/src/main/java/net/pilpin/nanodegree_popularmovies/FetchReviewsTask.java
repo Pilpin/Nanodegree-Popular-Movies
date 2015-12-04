@@ -124,6 +124,10 @@ public class FetchReviewsTask extends AsyncTask<Void, Void, Boolean> {
     private boolean getDataFromJsonReviewList(String reviewsJsonStr) throws JSONException {
         final String REVIEW_LIST = "results";
 
+        if(reviewsJsonStr == null){
+            return false;
+        }
+
         try{
             JSONObject reviewsJson = new JSONObject(reviewsJsonStr);
             JSONArray reviewsArray = reviewsJson.getJSONArray(REVIEW_LIST);
