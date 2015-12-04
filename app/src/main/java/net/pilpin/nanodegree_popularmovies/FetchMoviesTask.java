@@ -288,6 +288,10 @@ public class FetchMoviesTask extends AsyncTask<Void, Void, Boolean> {
     private boolean getDataFromJsonMovieList(String moviesJsonStr) throws JSONException {
         final String MOVIE_LIST = "results";
 
+        if(moviesJsonStr == null){
+            return false;
+        }
+
         try{
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray moviesArray = moviesJson.getJSONArray(MOVIE_LIST);

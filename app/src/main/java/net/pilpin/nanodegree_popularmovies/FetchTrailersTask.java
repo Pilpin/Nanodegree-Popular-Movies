@@ -124,6 +124,10 @@ public class FetchTrailersTask extends AsyncTask<Void, Void, Boolean> {
     private boolean getDataFromJsonTrailerList(String trailersJsonStr) throws JSONException {
         final String TRAILER_LIST = "results";
 
+        if(trailersJsonStr == null){
+            return false;
+        }
+
         try{
             JSONObject trailersJson = new JSONObject(trailersJsonStr);
             JSONArray trailersArray = trailersJson.getJSONArray(TRAILER_LIST);
