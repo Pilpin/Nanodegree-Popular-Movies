@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.ShareActionProvider;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +26,8 @@ import net.pilpin.nanodegree_popularmovies.data.MovieContract;
 public class MovieTrailers_Fragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private final int TRAILERS_LOADER = 10;
 
+    private final String SAVE_SHARE_ACTION_VISIBLE = "share_action";
+
     private static final String[] TRAILERS_COLUMNS = {
             MovieContract.TrailerEntry.NAME,
             MovieContract.TrailerEntry.KEY};
@@ -38,7 +41,7 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
     private ShareActionProvider mShareActionProvider;
     private MenuItem mShareItem;
     private Intent mShareIntent;
-    private boolean mOptionsMenuItemVisible = false;
+    private boolean mShareActionVisible = false;
 
     private LinearLayout content;
 
@@ -49,7 +52,6 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
 
         MovieTrailers_Fragment fragment = new MovieTrailers_Fragment();
         fragment.setArguments(args);
-        fragment.setHasOptionsMenu(true);
 
         return fragment;
     }
@@ -60,6 +62,10 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+        if(savedInstanceState != null){
+            mShareActionVisible = savedInstanceState.getBoolean(SAVE_SHARE_ACTION_VISIBLE);
+        }
     }
 
     @Override
@@ -81,13 +87,20 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_trailers, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
         mShareItem = menu.findItem(R.id.action_share);
         mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(mShareItem);
         if(mShareIntent != null){
-            mShareItem.setVisible(mOptionsMenuItemVisible);
+            mShareItem.setVisible(mShareActionVisible);
             mShareActionProvider.setShareIntent(mShareIntent);
         }
-        super.onCreateOptionsMenu(menu, inflater);
+
+        Log.e(this.getClass().getSimpleName(), "onCreateOptionsMenu " + mShareActionVisible);
+        super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -95,6 +108,13 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
         super.onResume();
         FetchTrailersTask fetchTrailersTask = new FetchTrailersTask(getActivity(), mMovie_id, mMovieApiId);
         fetchTrailersTask.execute();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.e(this.getClass().getSimpleName(), "onSaveInstanceState " + mShareActionVisible);
+        outState.putBoolean(SAVE_SHARE_ACTION_VISIBLE, mShareActionVisible);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -112,7 +132,7 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if(data == null || data.getCount() == 0){
             content.setVisibility(View.GONE);
-            mOptionsMenuItemVisible = false;
+            mShareActionVisible = false;
         }else {
             content.setVisibility(View.VISIBLE);
             content.removeViews(1, content.getChildCount() - 1);
@@ -136,7 +156,7 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
 
                 if(data.isFirst()){
                     mShareIntent = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, trailerUrl);
-                    mOptionsMenuItemVisible = true;
+                    mShareActionVisible = true;
                 }
 
                 content.addView(trailer);
@@ -144,9 +164,11 @@ public class MovieTrailers_Fragment extends Fragment implements LoaderManager.Lo
         }
 
         if(mShareActionProvider != null){
-            mShareItem.setVisible(mOptionsMenuItemVisible);
+            mShareItem.setVisible(mShareActionVisible);
             mShareActionProvider.setShareIntent(mShareIntent);
         }
+
+        Log.e(this.getClass().getSimpleName(), "onLoadFinished " + mShareActionVisible);
     }
 
     @Override
